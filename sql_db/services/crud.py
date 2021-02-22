@@ -18,7 +18,8 @@ def get_reading_by_dates(db: Session, start_date: datetime,
                          end_date: datetime
                          ):
     return db.query(modelReading.Reading).\
-        filter(end_date > modelReading.Reading.date > start_date).all()
+        filter((modelReading.Reading.date > start_date) &
+               (end_date > modelReading.Reading.date)).all()
 
 
 def get_readings(db: Session):

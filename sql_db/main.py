@@ -38,6 +38,12 @@ def get_db():
         db.close()
 
 
+class PeriodDependency:
+    def __init__(self, from_date: int, to_date: int):
+        self.from_date = datetime.fromtimestamp(from_date)
+        self.to_date = datetime.fromtimestamp(to_date)
+
+
 @app.post('/readings/', response_model=schemaReading.Reading)
 def create_reading(date: int, values: List[float],
                    db: Session = Depends(get_db),
@@ -62,13 +68,10 @@ def read_readings_by_date(timestamp: int, db: Session = Depends(get_db)):
     return readings
 
 
-@app.get('readings/{time}/', response_model=List[schemaReading.Reading])
-def read_readings_between(time1: int, time2: int,
-                          db: Session = Depends(get_db)
-                          ):
-    formatted_date1 = datetime.fromtimestamp(time1)
-    formatted_date2 = datetime.fromtimestamp(time2)
-    readings = crud.get_reading_by_dates(db, formatted_date1, formatted_date2)
+@app.get('/readings/{period}', response_model=List[schemaReading.Reading])
+def read_readings_between(dates: PeriodDependency = Depends(PeriodDependency),
+                          db: Session = Depends(get_db)):
+    readings = crud.get_reading_by_dates(db, dates.from_date, dates.to_date)
     if readings is None:
         raise HTTPException(status_code=404, detail="Readings not found")
     return readings
