@@ -53,13 +53,19 @@ def create_reading(date: int, values: List[float],
     return crud.add_reading(db=db, date=formated_date, values=values)
 
 
+@app.get('/readings/{reading_id}/', response_model=schemaReading.Reading)
+def read_reading(reading_id: int, db: Session = Depends(get_db)):
+    reading = crud.get_reading(db=db, reading_id=reading_id)
+    return reading
+
+
 @app.get('/readings/', response_model=List[schemaReading.Reading])
 def read_readings(db: Session = Depends(get_db)):
     readings = crud.get_readings(db=db)
     return readings
 
 
-@app.get('/readings/{date}/', response_model=List[schemaReading.Reading])
+@app.get('/readings/date', response_model=List[schemaReading.Reading])
 def read_readings_by_date(timestamp: int, db: Session = Depends(get_db)):
     formatted_date = datetime.fromtimestamp(timestamp)
     readings = crud.get_reading_by_date(db=db, reading_date=formatted_date)
@@ -68,7 +74,7 @@ def read_readings_by_date(timestamp: int, db: Session = Depends(get_db)):
     return readings
 
 
-@app.get('/readings/{period}', response_model=List[schemaReading.Reading])
+@app.get('/readings/period', response_model=List[schemaReading.Reading])
 def read_readings_between(dates: PeriodDependency = Depends(PeriodDependency),
                           db: Session = Depends(get_db)):
     readings = crud.get_reading_by_dates(db, dates.from_date, dates.to_date)
