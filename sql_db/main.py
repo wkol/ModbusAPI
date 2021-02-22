@@ -39,13 +39,13 @@ def get_db():
 
 
 class PeriodDependency:
-    def __init__(self, from_date: int, to_date: int):
-        self.from_date = datetime.fromtimestamp(from_date)
-        self.to_date = datetime.fromtimestamp(to_date)
+    def __init__(self, from_date: str, to_date: str):
+        self.from_date = datetime.fromisoformat(from_date)
+        self.to_date = datetime.fromisoformat(to_date)
 
 
 @app.post('/readings/', response_model=schemaReading.Reading)
-def create_reading(date: int, values: List[float],
+def create_reading(date: str, values: List[float],
                    db: Session = Depends(get_db),
                    api_key: APIKey = Depends(get_api_key)
                    ):
@@ -66,8 +66,8 @@ def read_readings(db: Session = Depends(get_db)):
 
 
 @app.get('/readings/date', response_model=List[schemaReading.Reading])
-def read_readings_by_date(timestamp: int, db: Session = Depends(get_db)):
-    formatted_date = datetime.fromtimestamp(timestamp)
+def read_readings_by_date(date: str, db: Session = Depends(get_db)):
+    formatted_date = datetime.fromisoformat(date)
     readings = crud.get_reading_by_date(db=db, reading_date=formatted_date)
     if readings is None:
         raise HTTPException(status_code=404, detail="Readings not found")

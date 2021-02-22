@@ -1,4 +1,5 @@
 from sqlalchemy.orm import Session
+from sqlalchemy import func
 from ..models import readings as modelReading
 from datetime import datetime
 from typing import List
@@ -11,15 +12,16 @@ def get_reading(db: Session, reading_id: int):
 
 def get_reading_by_date(db: Session, reading_date: datetime):
     return db.query(modelReading.Reading).\
-        filter(modelReading.Reading.date == reading_date).all()
+        filter(func.DATE(modelReading.Reading.date) == reading_date.date()).\
+        all()
 
 
 def get_reading_by_dates(db: Session, start_date: datetime,
                          end_date: datetime
                          ):
     return db.query(modelReading.Reading).\
-        filter((modelReading.Reading.date > start_date) &
-               (end_date > modelReading.Reading.date)).all()
+        filter((func.DATE(modelReading.Reading.date) >= start_date.date()) &
+               (end_date.date() >= func.DATE(modelReading.Reading.date))).all()
 
 
 def get_readings(db: Session):
