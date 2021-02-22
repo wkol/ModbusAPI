@@ -1,5 +1,6 @@
 from typing import List
 from datetime import datetime
+from pydantic import BaseModel
 
 from fastapi import Depends, FastAPI, HTTPException, Security
 from sqlalchemy.orm import Session
@@ -19,6 +20,11 @@ api_key_header = APIKeyHeader(name=API_KEY_NAME, auto_error=False)
 modelReading.Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
+
+
+class Read(BaseModel):
+    date: str
+    values: List[float]
 
 
 def get_api_key(api_key_header: str = Security(api_key_header)):
@@ -45,12 +51,12 @@ class PeriodDependency:
 
 
 @app.post('/readings/', response_model=schemaReading.Reading)
-def create_reading(date: str, values: List[float],
+def create_reading(read: Read,
                    db: Session = Depends(get_db),
                    api_key: APIKey = Depends(get_api_key)
                    ):
-    formated_date = datetime.fromtimestamp(date)
-    return crud.add_reading(db=db, date=formated_date, values=values)
+    formated_date = datetime.fromisoformat(read.date)
+    return crud.add_reading(db=db, date=formated_date, values=read.values)
 
 
 @app.get('/readings/{reading_id}/', response_model=schemaReading.Reading)
