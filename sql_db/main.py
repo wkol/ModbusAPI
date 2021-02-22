@@ -25,7 +25,7 @@ def get_api_key(api_key_header: str = Security(api_key_header)):
     if api_key_header == API_KEY:
         return api_key_header
     else:
-        raise HTTPException(status_code=HTTP_403_FORBIDDEN, 
+        raise HTTPException(status_code=HTTP_403_FORBIDDEN,
                             detail="Could not validate credentials"
                             )
 
@@ -53,10 +53,22 @@ def read_readings(db: Session = Depends(get_db)):
     return readings
 
 
-@app.get('/readings/{date}', response_model=List[schemaReading.Reading])
+@app.get('/readings/{date}/', response_model=List[schemaReading.Reading])
 def read_readings_by_date(timestamp: int, db: Session = Depends(get_db)):
     formatted_date = datetime.fromtimestamp(timestamp)
     readings = crud.get_reading_by_date(db=db, reading_date=formatted_date)
+    if readings is None:
+        raise HTTPException(status_code=404, detail="Readings not found")
+    return readings
+
+
+@app.get('readings/{time}/', response_model=List[schemaReading.Reading])
+def read_readings_between(time1: int, time2: int,
+                          db: Session = Depends(get_db)
+                          ):
+    formatted_date1 = datetime.fromtimestamp(time1)
+    formatted_date2 = datetime.fromtimestamp(time2)
+    readings = crud.get_reading_by_dates(db, formatted_date1, formatted_date2)
     if readings is None:
         raise HTTPException(status_code=404, detail="Readings not found")
     return readings
