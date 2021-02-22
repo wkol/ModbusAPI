@@ -1,5 +1,6 @@
 from typing import List
 from datetime import datetime
+
 from fastapi import Depends, FastAPI, HTTPException, Security
 from sqlalchemy.orm import Session
 from fastapi.security.api_key import APIKeyHeader, APIKey
@@ -49,4 +50,13 @@ def create_reading(date: int, values: List[float],
 @app.get('/readings/', response_model=List[schemaReading.Reading])
 def read_readings(db: Session = Depends(get_db)):
     readings = crud.get_readings(db=db)
+    return readings
+
+
+@app.get('/readings/{date}', response_model=List[schemaReading.Reading])
+def read_readings_by_date(timestamp: int, db: Session = Depends(get_db)):
+    formatted_date = datetime.fromtimestamp(timestamp)
+    readings = crud.get_reading_by_date(db=db, reading_date=formatted_date)
+    if readings is None:
+        raise HTTPException(status_code=404, detail="Readings not found")
     return readings

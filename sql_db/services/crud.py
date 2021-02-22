@@ -41,7 +41,23 @@ def add_reading(db: Session, date: datetime, values: List[float]):
                                       input_EA=values[12],
                                       input_EA_MSB=values[13],
                                       return_EA=values[14],
-                                      return_EA_MSB=values[15]
+                                      return_EA_MSB=values[15],
+                                      ind_EQ=values[16],
+                                      ind_EQ_MSB=values[17],
+                                      cap_EQ=values[18],
+                                      cap_EQ_MSB=values[19],
+                                      voltage_l1=values[20],
+                                      voltage_l2=values[21],
+                                      voltage_l3=values[22],
+                                      power_l1=values[23],
+                                      power_l2=values[24],
+                                      power_l3=values[25],
+                                      reactive_power_l1=values[26],
+                                      reactive_power_l2=values[27],
+                                      reactive_power_l3=values[28],
+                                      cos_l1=values[29],
+                                      cos_l2=values[30],
+                                      cos_l3=values[31],
                                       )
     db.add(db_reading)
     db.commit()
