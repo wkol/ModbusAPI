@@ -65,7 +65,7 @@ def read_reading(reading_id: int, db: Session = Depends(get_db)):
     return reading
 
 
-@app.get('/readings/last/', response_model=schemaReading.Reading)
+@app.get('/readings_last/', response_model=schemaReading.Reading)
 def read_last_reading(db: Session = Depends(get_db)):
     reading = crud.get_last_reading(db)
     return reading
