@@ -28,6 +28,20 @@ def get_readings(db: Session):
     return db.query(modelReading.Reading).all()
 
 
+def delete_reading(db: Session, reading_id: int):
+    db_reading_to_remove = db.query(modelReading.Reading).\
+        filter(modelReading.Reading.id == reading_id).first()
+    if db_reading_to_remove is not None:
+        db.delete(db_reading_to_remove)
+        db.commit()
+    return db_reading_to_remove
+
+
+def get_last_reading(db: Session):
+    return db.query(modelReading.Reading)\
+        .order_by(modelReading.Reading.id.desc()).first()
+
+
 def add_reading(db: Session, date: datetime, values: List[float]):
     db_reading = modelReading.Reading(date=date, voltage_13=values[0],
                                       voltage_12=values[1],

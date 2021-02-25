@@ -65,6 +65,12 @@ def read_reading(reading_id: int, db: Session = Depends(get_db)):
     return reading
 
 
+@app.get('/readings/last/', response_model=schemaReading.Reading)
+def read_last_reading(db: Session = Depends(get_db)):
+    reading = crud.get_last_reading(db)
+    return reading
+
+
 @app.get('/readings/', response_model=List[schemaReading.Reading])
 def read_readings(db: Session = Depends(get_db)):
     readings = crud.get_readings(db=db)
@@ -87,3 +93,14 @@ def read_readings_between(dates: PeriodDependency = Depends(PeriodDependency),
     if readings is None:
         raise HTTPException(status_code=404, detail="Readings not found")
     return readings
+
+
+@app.delete('/readings/{reading_id}', response_model=schemaReading.Reading)
+def delete_reading(reading_id: int, 
+                   db: Session = Depends(get_db),
+                   api_key: APIKey = Depends(get_api_key)
+                   ):
+    db_reading = crud.delete_reading(db=db, reading_id=reading_id)
+    if not db_reading:
+        raise HTTPException(status_code=404, detail="Reading not found")
+    return db_reading
