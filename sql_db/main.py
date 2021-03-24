@@ -103,4 +103,9 @@ def delete_reading(reading_id: int,
     db_reading = crud.delete_reading(db=db, reading_id=reading_id)
     if not db_reading:
         raise HTTPException(status_code=404, detail="Reading not found")
-    return db_reading
+@app.get('/readings_chart', response_model=List[schemaReading.Reading])
+async def read_chart_readings(db: Session = Depends(get_db)):
+    readings = crud.get_readings(db)
+    if readings is None:
+        raise HTTPException(status_code=404, detail="Readings not found")
+    return await readings[::10]
