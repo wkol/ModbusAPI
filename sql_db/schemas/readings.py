@@ -43,7 +43,3 @@ class Reading(ReadingBase):
 
     class Config:
         orm_mode = True
-
-
-class ReadingCreate(ReadingBase):
-    pass

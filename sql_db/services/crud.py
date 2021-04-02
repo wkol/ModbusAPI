@@ -1,82 +1,83 @@
-from sqlalchemy.orm import Session
 from sqlalchemy import func
-from ..models import readings as modelReading
 from datetime import datetime
+from ..database import database, readings
+from pydantic import BaseModel
 from typing import List
 
 
-def get_reading(db: Session, reading_id: int):
-    return db.query(modelReading.Reading).\
-        filter(modelReading.Reading.id == reading_id).first()
+class Read(BaseModel):
+    date: str
+    values: List[float]
 
 
-def get_reading_by_date(db: Session, reading_date: datetime):
-    return db.query(modelReading.Reading).\
-        filter(func.DATE(modelReading.Reading.date) == reading_date.date()).\
-        all()
+async def get_reading(reading_id: int):
+    query = readings.select().where(reading_id == readings.c.id)
+    return await database.fetch_one(query=query)
 
 
-def get_reading_by_dates(db: Session, start_date: datetime,
-                         end_date: datetime
-                         ):
-    return db.query(modelReading.Reading).\
-        filter((func.DATE(modelReading.Reading.date) >= start_date.date()) &
-               (end_date.date() >= func.DATE(modelReading.Reading.date))).all()
+async def get_reading_by_date(reading_date: datetime):
+    query = readings.select().where(reading_date.date() ==\
+                                    func.DATE(readings.c.date))
+    return await database.fetch_all(query=query)
 
 
-def get_readings(db: Session):
-    return db.query(modelReading.Reading).all()
+async def get_reading_by_dates(start_date: datetime,
+                               end_date: datetime
+                               ):
+    query = readings.select().where(func.DATE(start_date) < func.DATE(readings.c.date))
+    return await database.fetch_all(query=query)
 
 
-def delete_reading(db: Session, reading_id: int):
-    db_reading_to_remove = db.query(modelReading.Reading).\
-        filter(modelReading.Reading.id == reading_id).first()
-    if db_reading_to_remove is not None:
-        db.delete(db_reading_to_remove)
-        db.commit()
-    return db_reading_to_remove
+async def get_readings():
+    query = readings.select()
+    return await database.fetch_all(query=query)
 
 
-def get_last_reading(db: Session):
-    return db.query(modelReading.Reading)\
-        .order_by(modelReading.Reading.id.desc()).first()
+async def delete_reading(reading_id: int):
+    query = readings.delete().where(reading_id == readings.c.id)
+    await database.execute(query)
+    return {'msg': f'Reading with id {reading_id} deleted'}
 
 
-def add_reading(db: Session, date: datetime, values: List[float]):
-    db_reading = modelReading.Reading(date=date, voltage_13=values[0],
-                                      voltage_12=values[1],
-                                      voltage_23=values[2],
-                                      current_l1=values[3],
-                                      current_l2=values[4],
-                                      current_l3=values[5],
-                                      total_power=values[6],
-                                      total_reactive_power=values[7],
-                                      total_apparent_power=values[8],
-                                      frequency=values[9],
-                                      total_cos=values[10],
-                                      current_n=values[11],
-                                      input_EA=values[12],
-                                      input_EA_MSB=values[13],
-                                      return_EA=values[14],
-                                      return_EA_MSB=values[15],
-                                      ind_EQ=values[16],
-                                      ind_EQ_MSB=values[17],
-                                      cap_EQ=values[18],
-                                      cap_EQ_MSB=values[19],
-                                      voltage_l1=values[20],
-                                      voltage_l2=values[21],
-                                      voltage_l3=values[22],
-                                      power_l1=values[23],
-                                      power_l2=values[24],
-                                      power_l3=values[25],
-                                      reactive_power_l1=values[26],
-                                      reactive_power_l2=values[27],
-                                      reactive_power_l3=values[28],
-                                      cos_l1=values[29],
-                                      cos_l2=values[30],
-                                      cos_l3=values[31],
-                                      )
-    db.add(db_reading)
-    db.commit()
-    db.refresh(db_reading)
-    return db_reading
+async def get_last_reading():
+    query = readings.select().order_by(readings.c.id.desc()).limit(1)
+    return await database.fetch_one(query=query)
+
+
+async def add_reading(read: Read):
+    query = readings.insert().values(date=datetime.fromisoformat(read.date),
+                                     voltage_13=read.values[0],
+                                     voltage_12=read.values[1],
+                                     voltage_23=read.values[2],
+                                     current_l1=read.values[3],
+                                     current_l2=read.values[4],
+                                     current_l3=read.values[5],
+                                     total_power=read.values[6],
+                                     total_reactive_power=read.values[7],
+                                     total_apparent_power=read.values[8],
+                                     frequency=read.values[9],
+                                     total_cos=read.values[10],
+                                     current_n=read.values[11],
+                                     input_EA=read.values[12],
+                                     input_EA_MSB=read.values[13],
+                                     return_EA=read.values[14],
+                                     return_EA_MSB=read.values[15],
+                                     ind_EQ=read.values[16],
+                                     ind_EQ_MSB=read.values[17],
+                                     cap_EQ=read.values[18],
+                                     cap_EQ_MSB=read.values[19],
+                                     voltage_l1=read.values[20],
+                                     voltage_l2=read.values[21],
+                                     voltage_l3=read.values[22],
+                                     power_l1=read.values[23],
+                                     power_l2=read.values[24],
+                                     power_l3=read.values[25],
+                                     reactive_power_l1=read.values[26],
+                                     reactive_power_l2=read.values[27],
+                                     reactive_power_l3=read.values[28],
+                                     cos_l1=read.values[29],
+                                     cos_l2=read.values[30],
+                                     cos_l3=read.values[31]
+                                     )
+
+    return await database.execute(query=query)

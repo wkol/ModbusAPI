@@ -1,1 +1,1 @@
-from .readings import Reading, ReadingBase, ReadingCreate
+from .readings import Reading, ReadingBase
