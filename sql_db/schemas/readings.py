@@ -1,5 +1,5 @@
 from datetime import datetime
-from pydantic import BaseModel
+from pydantic import BaseModel, BaseConfig
 
 
 class ReadingBase(BaseModel):
@@ -36,10 +36,8 @@ class ReadingBase(BaseModel):
     cos_l1: float
     cos_l2: float
     cos_l3: float
-
+    class Config():
+        orm_mode = True
 
 class Reading(ReadingBase):
     id: int
-
-    class Config:
-        orm_mode = True

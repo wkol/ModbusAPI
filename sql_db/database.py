@@ -3,14 +3,13 @@ from sqlalchemy import (Column, DateTime, Integer, MetaData, Float, Table,
 from databases import Database
 import datetime
 
-
 DATABASE_URL = "postgresql://modbus:solar@localhost/modbuserver"
-database = Database(DATABASE_URL)
+
 # SQLAlchemy
+engine = create_engine(DATABASE_URL)
 metadata = MetaData()
 readings = Table('readings',
                  metadata,
-                 Column('id', Integer, primary_key=True, index=True),
                  Column('date', DateTime,
                         default=datetime.datetime.utcnow()
                         ),
@@ -45,7 +44,8 @@ readings = Table('readings',
                  Column('reactive_power_l3', Float),
                  Column('cos_l1', Float),
                  Column('cos_l2', Float),
-                 Column('cos_l3', Float)
+                 Column('cos_l3', Float),
+                 Column('id', Integer, primary_key=True, index=True),
                  )
-engine = create_engine(DATABASE_URL)
-metadata.create_all(engine)
+
+database = Database(DATABASE_URL)

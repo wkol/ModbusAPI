@@ -1,11 +1,11 @@
 from datetime import datetime
-
+from typing import List
 from fastapi import Depends, HTTPException, APIRouter, Security
 from starlette.status import HTTP_403_FORBIDDEN
-
+from .schemas import Reading
 from .services import crud
 from fastapi.security.api_key import APIKeyHeader, APIKey
-
+from pydantic import parse_obj_as
 API_KEY = "2367449623"
 API_KEY_NAME = "post_token"
 
@@ -71,13 +71,13 @@ async def create_reading(read: crud.Read,
             }
 
 
-@router.get('/readings/{reading_id}/')
+@router.get('/readings/{reading_id}/', response_model=Reading)
 async def read_reading(reading_id: int):
     reading = await crud.get_reading(reading_id=reading_id)
     return reading
 
 
-@router.get('/readings_last/')
+@router.get('/readings_last/', response_model=Reading)
 async def read_last_reading():
     reading = await crud.get_last_reading()
     if reading is None:
@@ -85,7 +85,7 @@ async def read_last_reading():
     return reading
 
 
-@router.get('/readings/')
+@router.get('/readings/', response_model=List[Reading])
 async def read_readings():
     readings = await crud.get_readings()
     if readings is None:
