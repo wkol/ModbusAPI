@@ -5,24 +5,14 @@ from starlette.status import HTTP_403_FORBIDDEN, HTTP_422_UNPROCESSABLE_ENTITY
 from .schemas import Reading
 from .services import crud
 from fastapi.security.api_key import APIKeyHeader, APIKey
-# from fastapi.responses import JSONResponse
-# from typing import Any
-# import orjson
+
+
 API_KEY = "2367449623"
 API_KEY_NAME = "post_token"
 
 api_key_header = APIKeyHeader(name=API_KEY_NAME, auto_error=False)
 
-
-# class ORJSONResponse(JSONResponse):
-#     media_type = "application/json"
-
-#     def render(self, content: Any) -> bytes:
-#         return orjson.dumps(content)
-
-
 router = APIRouter()
-# router = APIRouter(default_response_class=ORJSONResponse)
 
 
 async def get_api_key(api_key_header: str = Security(api_key_header)):
@@ -70,7 +60,7 @@ async def read_readings():
     readings = await crud.get_readings()
     if readings is None:
         raise HTTPException(status_code=404, detail='Readings not found')
-    return readings[6801]
+    return readings
 
 
 @router.get('/readings/date', response_model=List[Reading])
