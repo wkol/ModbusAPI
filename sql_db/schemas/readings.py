@@ -1,5 +1,5 @@
 from datetime import datetime
-from pydantic import BaseModel, BaseConfig, Field
+from pydantic import BaseModel, Field
 
 
 class ReadingBase(BaseModel):
