@@ -1,13 +1,33 @@
 from sqlalchemy import func
 from datetime import datetime
-from database import database, readings
+from ..database import database, readings
 from pydantic import BaseModel
 from typing import List
+from math import inf
+from logging import warning
 
 
 class Read(BaseModel):
     date: str
     values: List[float]
+
+
+def post_data_validation(read: Read):
+    try:
+        datetime.fromisoformat(read.date)
+    except ValueError:
+        warning(f'Invalid ISO format date - {read.date}')
+        return False
+    if len(read.values) != 52:
+        warning(f'Not enough values passed - {len(read.values)}. Must be 52')
+        return False
+    for value in read.values:
+        if value == inf or value == -inf:
+            warning(f'Invalid value (is infinity) in the reading - {value}')
+            return False
+        elif value is None:
+            warning('Invalid value (is Null/None)')
+            return False
 
 
 async def get_reading(reading_id: int):
@@ -42,6 +62,11 @@ async def delete_reading(reading_id: int):
 async def get_last_reading():
     query = readings.select().order_by(readings.c.id.desc()).limit(1)
     return await database.fetch_one(query=query)
+
+
+async def get_readings_chart(id: int):
+    query = readings.select.where(readings.c.id > id)
+    return await database.fetch_all(query=query)
 
 
 async def add_reading(read: Read):

@@ -1,17 +1,28 @@
 from datetime import datetime
 from typing import List
 from fastapi import Depends, HTTPException, APIRouter, Security
-from starlette.status import HTTP_403_FORBIDDEN
-from schemas import Reading
-from services import crud
+from starlette.status import HTTP_403_FORBIDDEN, HTTP_422_UNPROCESSABLE_ENTITY
+from .schemas import Reading
+from .services import crud
 from fastapi.security.api_key import APIKeyHeader, APIKey
-
+# from fastapi.responses import JSONResponse
+# from typing import Any
+# import orjson
 API_KEY = "2367449623"
 API_KEY_NAME = "post_token"
 
 api_key_header = APIKeyHeader(name=API_KEY_NAME, auto_error=False)
 
+
+# class ORJSONResponse(JSONResponse):
+#     media_type = "application/json"
+
+#     def render(self, content: Any) -> bytes:
+#         return orjson.dumps(content)
+
+
 router = APIRouter()
+# router = APIRouter(default_response_class=ORJSONResponse)
 
 
 async def get_api_key(api_key_header: str = Security(api_key_header)):
@@ -33,6 +44,9 @@ class PeriodDependency:
 async def create_reading(read: crud.Read,
                          api_key: APIKey = Depends(get_api_key)
                          ):
+    if not crud.post_data_validation(read):
+        raise HTTPException(status_code=HTTP_422_UNPROCESSABLE_ENTITY,
+                            detail="Invalid reading's values")
     await crud.add_reading(read=read)
     return await crud.get_last_reading()
 
@@ -56,7 +70,7 @@ async def read_readings():
     readings = await crud.get_readings()
     if readings is None:
         raise HTTPException(status_code=404, detail='Readings not found')
-    return readings
+    return readings[6801]
 
 
 @router.get('/readings/date', response_model=List[Reading])
@@ -84,9 +98,9 @@ async def delete_reading(reading_id: int,
     return reading
 
 
-@router.get('/readings_chart/', response_model=List[Reading])
-async def read_chart_readings():
-    readings = await crud.get_readings()
+@router.get('/readings_chart/{reading_id}', response_model=List[Reading])
+async def read_chart_readings(id_from: int):
+    readings = await crud.get_readings_chart(id_from)
     if readings is None:
         raise HTTPException(status_code=404, detail='Readings not found')
-    return readings[::10]
+    return readings[::20]
