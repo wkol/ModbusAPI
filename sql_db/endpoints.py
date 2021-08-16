@@ -1,6 +1,7 @@
 from datetime import datetime
-from typing import List
+from typing import Dict, List
 from fastapi import Depends, HTTPException, APIRouter, Security
+from fastapi.responses import StreamingResponse
 from starlette.status import HTTP_403_FORBIDDEN, HTTP_422_UNPROCESSABLE_ENTITY
 from .schemas import Reading
 from .services import crud
@@ -18,10 +19,9 @@ router = APIRouter()
 async def get_api_key(api_key_header: str = Security(api_key_header)):
     if api_key_header == API_KEY:
         return api_key_header
-    else:
-        raise HTTPException(status_code=HTTP_403_FORBIDDEN,
-                            detail="Could not validate credentials"
-                            )
+    raise HTTPException(status_code=HTTP_403_FORBIDDEN,
+                        detail="Could not validate credentials"
+                        )
 
 
 class PeriodDependency:
@@ -62,7 +62,7 @@ async def read_readings():
 
 @router.get('/readings/date', response_model=List[Reading])
 async def read_readings_by_date(date: str):
-    formatted_date = datetime.fromisoformat(date)
+    formatted_date = datetime.fromisoformat(date).date
     readings = await crud.get_reading_by_date(reading_date=formatted_date)
     if readings is None:
         raise HTTPException(status_code=404, detail='Readings not found')
@@ -77,7 +77,7 @@ async def read_readings_between(dates: PeriodDependency = Depends(PeriodDependen
     return readings
 
 
-@router.delete('/readings/{reading_id}')
+@router.delete('/readings/{reading_id}/')
 async def delete_reading(reading_id: int,
                          api_key: APIKey = Depends(get_api_key)
                          ):

@@ -1,11 +1,13 @@
 from sqlalchemy import func
 from datetime import datetime
+
+import sqlalchemy
 from ..database import database, readings
 from pydantic import BaseModel
 from typing import List
 from math import inf
 from logging import warning
-
+import json
 
 class Read(BaseModel):
     date: str
@@ -18,17 +20,17 @@ def post_data_validation(read: Read):
     except ValueError:
         warning(f'Invalid ISO format date - {read.date}')
         return False
-    if len(read.values) != 52:
-        warning(f'Not enough values passed - {len(read.values)}. Must be 52')
+    if len(read.values) <= 52:
+        warning(f'Not enough values passed - {len(read.values)}. Must be at least 52')
         return False
     for value in read.values:
-        if value == inf or value == -inf:
+        if value in [-inf, inf]:
             warning(f'Invalid value (is infinity) in the reading - {value}')
             return False
         elif value is None:
             warning('Invalid value (is Null/None)')
             return False
-
+    return True
 
 async def get_reading(reading_id: int):
     query = readings.select().where(reading_id == readings.c.id)
@@ -44,7 +46,8 @@ async def get_reading_by_date(reading_date: datetime):
 async def get_reading_by_dates(start_date: datetime,
                                end_date: datetime
                                ):
-    query = readings.select().where(func.DATE(start_date) < func.DATE(readings.c.date))
+    query = readings.select().where(start_date.date() < func.DATE(readings.c.date))\
+            .where(end_date.date() > func.DATE(readings.c.date))  
     return await database.fetch_all(query=query)
 
 
