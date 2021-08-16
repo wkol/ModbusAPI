@@ -55,12 +55,9 @@ async def read_last_reading():
     return reading
 
 
-@router.get('/readings/', response_model=List[Reading])
+@router.get('/readings/')
 async def read_readings():
-    readings = await crud.get_readings()
-    if readings is None:
-        raise HTTPException(status_code=404, detail='Readings not found')
-    return readings
+    return StreamingResponse(crud.get_readings())
 
 
 @router.get('/readings/date', response_model=List[Reading])

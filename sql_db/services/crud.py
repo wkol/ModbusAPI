@@ -50,7 +50,14 @@ async def get_reading_by_dates(start_date: datetime,
 
 async def get_readings():
     query = readings.select()
-    return await database.fetch_all(query=query)
+    yield '['
+    idx = 0
+    async for row in database.iterate(query=query):
+        if idx > 0:
+            yield ','
+        idx+=1
+        yield json.dumps(dict(row.items()), default=str)
+    yield ']'
 
 
 async def delete_reading(reading_id: int):
