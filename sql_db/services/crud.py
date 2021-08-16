@@ -64,8 +64,12 @@ async def get_last_reading():
     return await database.fetch_one(query=query)
 
 
-async def get_readings_chart(id: int):
-    query = readings.select.where(readings.c.id > id)
+async def get_readings_chart(start_date: datetime,
+                             end_date: datetime, name: str
+                             ):
+    query = sqlalchemy.select([readings.c.date, readings.c[name].label('value')])\
+        .where(func.DATE(start_date) <= func.DATE(readings.c.date))\
+        .where(func.DATE(end_date) >= func.DATE(readings.c.date)).execution_options()
     return await database.fetch_all(query=query)
 
 async def add_reading(read: Read):

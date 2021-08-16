@@ -88,9 +88,12 @@ async def delete_reading(reading_id: int,
     return reading
 
 
-@router.get('/readings_chart/{reading_id}', response_model=List[Reading])
-async def read_chart_readings(id_from: int):
-    readings = await crud.get_readings_chart(id_from)
+@router.get('/readings_chart', response_model=List[Dict])
+async def read_chart_readings(name: str, dates: PeriodDependency = Depends(PeriodDependency)):
+    try:
+        readings = await crud.get_readings_chart(dates.from_date, dates.to_date, name)
+    except KeyError:
+        raise HTTPException(status_code=404, detail='Invalid value name')
     if readings is None:
         raise HTTPException(status_code=404, detail='Readings not found')
-    return readings[::20]
+    return readings[::60]
