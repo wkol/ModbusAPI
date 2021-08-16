@@ -4,19 +4,11 @@ from .endpoints import router
 import uvicorn
 from fastapi.logger import logger as fastapi_logger
 import logging
-from fastapi.responses import JSONResponse
-from typing import Any
-import orjson
+from fastapi.middleware.gzip import GZipMiddleware
 
 
-class ORJSONResponse(JSONResponse):
-    media_type = "application/json"
-
-    def render(self, content: Any) -> bytes:
-        return orjson.dumps(content)
-
-
-app = FastAPI(default_response_class=ORJSONResponse)
+app = FastAPI()
+app.add_middleware(GZipMiddleware, minimum_size=10)
 
 
 gunicorn_error_logger = logging.getLogger("gunicorn.error")
